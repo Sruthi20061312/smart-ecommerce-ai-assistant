@@ -173,6 +173,66 @@ PRODUCTS = {
             "Water resistant material. Laptop fits well. Happy with purchase.",
             "Good bag for the price. Comfortable to carry all day.",
         ]
+    },
+    "Himalaya Face Wash": {
+        "category": "Personal Care",
+        "price_history": [299, 279, 259, 269, 249, 239, 229],
+        "sustainability_score": 78,
+        "reviews": [
+            "Gentle on skin. No harsh chemicals. Face feels clean after use.",
+            "BEST FACE WASH EVER!! MUST BUY!! AMAZING RESULTS!!",
+            "Good for daily use. Mild fragrance. Affordable price.",
+            "Skin feels soft after washing. No dryness. Happy with it.",
+            "Natural ingredients. Good lather. Recommended for sensitive skin.",
+        ]
+    },
+    "Lenovo IdeaPad Laptop": {
+        "category": "Electronics",
+        "price_history": [55999, 53999, 51999, 50999, 49999, 47999, 45999],
+        "sustainability_score": 50,
+        "reviews": [
+            "Good performance for college use. Battery lasts 6 hours.",
+            "BEST LAPTOP EVER!! AMAZING SPEED!! BUY NOW!! LOVE IT!!",
+            "Decent build quality. Keyboard is comfortable. Screen is bright.",
+            "Heats up a bit under heavy load. Otherwise good laptop.",
+            "Value for money. Good for coding and assignments.",
+        ]
+    },
+    "Tata Tea Gold": {
+        "category": "Food & Beverage",
+        "price_history": [349, 329, 309, 319, 299, 289, 279],
+        "sustainability_score": 72,
+        "reviews": [
+            "Rich taste. Strong aroma. Perfect morning tea.",
+            "BEST TEA EVER!! AMAZING FLAVOR!! MUST BUY!!",
+            "Good quality tea. Consistent taste. Family loves it.",
+            "Slightly expensive but worth the quality.",
+            "Classic Indian tea. Perfect blend. No complaints.",
+        ]
+    },
+    "Puma Sports T-Shirt": {
+        "category": "Clothing",
+        "price_history": [1299, 1199, 999, 1099, 949, 899, 849],
+        "sustainability_score": 65,
+        "reviews": [
+            "Comfortable fabric. Good for gym and outdoor activities.",
+            "AMAZING SHIRT!! BEST QUALITY!! BUY NOW!! PERFECT FIT!!",
+            "Good stitching. Colour stayed after washing. Happy purchase.",
+            "Size runs small. Otherwise good quality t-shirt.",
+            "Breathable material. Dries fast. Good for workouts.",
+        ]
+    },
+    "Milton Water Bottle": {
+        "category": "Eco Products",
+        "price_history": [799, 749, 699, 719, 679, 649, 599],
+        "sustainability_score": 82,
+        "reviews": [
+            "Keeps water cold for 24 hours. No leakage. Great quality.",
+            "BEST BOTTLE EVER!! AMAZING!! BUY NOW!! MUST HAVE!!",
+            "Good insulation. Easy to carry. Lid is sturdy.",
+            "Durable stainless steel. Eco friendly. Worth the price.",
+            "Perfect for office and gym. Keeps drinks hot too.",
+        ]
     }
 }
 
@@ -375,6 +435,7 @@ feature = st.sidebar.selectbox(
         "🏠 Home",
         "🔍 Product Search",
         "⚖️ Compare Products",
+        "📊 Review Analytics",
         "🕵️ Fake Review Detection",
         "📉 Price Drop Prediction",
         "🌿 Sustainability Score",
@@ -399,11 +460,11 @@ if feature == "🏠 Home":
     # Stats row
     col_s1, col_s2, col_s3, col_s4 = st.columns(4)
     with col_s1:
-        st.metric("🛍️ Total Products", "10", delta="Indian Brands")
+        st.metric("🛍️ Total Products", "15", delta="Indian Brands")
     with col_s2:
-        st.metric("🤖 AI Features", "7", delta="All Offline")
+        st.metric("🤖 AI Features", "8", delta="All Offline")
     with col_s3:
-        st.metric("📝 Reviews Analyzed", "50+", delta="Real Patterns")
+        st.metric("📝 Reviews Analyzed", "75+", delta="Real Patterns")
     with col_s4:
         st.metric("⚡ Response Time", "<1 sec", delta="Instant")
 
@@ -674,6 +735,126 @@ elif feature == "⚖️ Compare Products":
             with col_r3:
                 cheaper = product_a if prices_a[-1] < prices_b[-1] else product_b
                 st.metric("💰 Price Winner", cheaper.split()[0])
+
+
+
+# ─────────────────────────────────────────────
+# REVIEW ANALYTICS DASHBOARD
+# ─────────────────────────────────────────────
+elif feature == "📊 Review Analytics":
+    st.title("📊 Review Analytics Dashboard")
+    st.markdown("Deep analysis of fake vs genuine reviews across all products!")
+    st.markdown("---")
+
+    # Analyze all products
+    all_fake = 0
+    all_genuine = 0
+    product_names = []
+    fake_counts = []
+    genuine_counts = []
+    eco_scores = []
+
+    for pname, pdata in PRODUCTS.items():
+        fake = sum(1 for r in pdata["reviews"] if analyze_review(r)[0] == "🔴 LIKELY FAKE")
+        genuine = len(pdata["reviews"]) - fake
+        all_fake += fake
+        all_genuine += genuine
+        product_names.append(pname.split()[0])  # First word only for chart
+        fake_counts.append(fake)
+        genuine_counts.append(genuine)
+        eco_scores.append(pdata["sustainability_score"])
+
+    total_reviews = all_fake + all_genuine
+
+    # Top stats
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📝 Total Reviews", total_reviews)
+    with col2:
+        st.metric("🔴 Fake Reviews", all_fake)
+    with col3:
+        st.metric("🟢 Genuine Reviews", all_genuine)
+    with col4:
+        fake_pct = round((all_fake / total_reviews) * 100)
+        st.metric("⚠️ Fake %", f"{fake_pct}%")
+
+    st.markdown("---")
+
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        # Pie chart - overall
+        fig1 = go.Figure(data=[go.Pie(
+            labels=["🔴 Fake", "🟢 Genuine"],
+            values=[all_fake, all_genuine],
+            hole=0.45,
+            marker_colors=["#FF4B4B", "#00cc88"],
+            textfont_size=14
+        )])
+        fig1.update_layout(
+            title="Overall Review Authenticity",
+            paper_bgcolor="#0f1117",
+            font_color="white",
+            height=350
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+
+    with col_right:
+        # Bar chart - per product
+        fig2 = go.Figure()
+        fig2.add_trace(go.Bar(
+            name="🔴 Fake",
+            x=product_names,
+            y=fake_counts,
+            marker_color="#FF4B4B"
+        ))
+        fig2.add_trace(go.Bar(
+            name="🟢 Genuine",
+            x=product_names,
+            y=genuine_counts,
+            marker_color="#00cc88"
+        ))
+        fig2.update_layout(
+            title="Fake vs Genuine Per Product",
+            barmode="stack",
+            paper_bgcolor="#0f1117",
+            plot_bgcolor="#1e2130",
+            font_color="white",
+            height=350
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+
+    st.markdown("---")
+
+    # Sustainability bar chart
+    fig3 = go.Figure()
+    colors = ["#00cc88" if s >= 80 else "#ffaa00" if s >= 60 else "#FF4B4B" for s in eco_scores]
+    fig3.add_trace(go.Bar(
+        x=product_names,
+        y=eco_scores,
+        marker_color=colors,
+        text=eco_scores,
+        textposition="outside"
+    ))
+    fig3.update_layout(
+        title="Sustainability Scores Across All Products",
+        paper_bgcolor="#0f1117",
+        plot_bgcolor="#1e2130",
+        font_color="white",
+        height=380,
+        yaxis=dict(range=[0, 110])
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+
+    st.markdown("---")
+    # Most trusted & least trusted
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        most_trusted_idx = genuine_counts.index(max(genuine_counts))
+        st.success(f"🏆 Most Trusted Product: **{list(PRODUCTS.keys())[most_trusted_idx]}** ({genuine_counts[most_trusted_idx]} genuine reviews)")
+    with col_t2:
+        most_fake_idx = fake_counts.index(max(fake_counts))
+        st.error(f"⚠️ Most Suspicious Product: **{list(PRODUCTS.keys())[most_fake_idx]}** ({fake_counts[most_fake_idx]} fake reviews)")
 
 
 # ─────────────────────────────────────────────
